@@ -97,8 +97,9 @@ public class TeleOpControlLinearOpMode extends LinearOpMode {
 
     private double CATAPULT_UP_POWER = -1.0;
     private double CATAPULT_DOWN_POWER = 1.0;
+    private double CATAPULT_HOLD_POWER = 0.2;
 
-    private enum CatapultModes {UP, DOWN, BRAKE}
+    private enum CatapultModes {UP, DOWN, HOLD}
 
     private CatapultModes pivotMode;
 
@@ -166,6 +167,10 @@ public class TeleOpControlLinearOpMode extends LinearOpMode {
         catatime.reset();
         // run until the end of the match (driver presses STOP)
         // same as previous year's loop() code
+        double leftFrontPower = 0;
+        double rightFrontPower = 0;
+        double leftBackPower = 0;
+        double rightBackPower = 0;
         while (opModeIsActive()) {
             double max;
 
@@ -198,10 +203,10 @@ public class TeleOpControlLinearOpMode extends LinearOpMode {
             // DRIVE CODE
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
-            double leftFrontPower = axial + lateral + yaw;
-            double rightFrontPower = axial - lateral - yaw;
-            double leftBackPower = axial - lateral + yaw;
-            double rightBackPower = axial + lateral - yaw;
+            leftFrontPower = axial + lateral + yaw;
+            rightFrontPower = axial - lateral - yaw;
+            leftBackPower = axial - lateral + yaw;
+            rightBackPower = axial + lateral - yaw;
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
@@ -261,20 +266,10 @@ public class TeleOpControlLinearOpMode extends LinearOpMode {
                 catapult1.setPower(CATAPULT_DOWN_POWER);
                 catapult2.setPower(CATAPULT_DOWN_POWER);
             } else {
-                // put the catapult down
-                double cata_to_down_time = 1.0;
-                while (opModeIsActive() && catatime.seconds() < cata_to_down_time) {
-                    // Keep motor running
-                    catapult1.setPower(CATAPULT_DOWN_POWER);
-                    catapult2.setPower(CATAPULT_DOWN_POWER);
-                    // need full power with 12 rubber bands. Half that amount can be adjusted to use .5% power.
-                }
-
-                pivotMode = CatapultModes.BRAKE;
-                catapult1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                catapult2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                // If you try to turn off motors the catapult will not stay down
-                // motors will get warm while in BRAKE mode
+                pivotMode = CatapultModes.HOLD;
+                catapult1.setPower(CATAPULT_HOLD_POWER);
+                catapult2.setPower(CATAPULT_HOLD_POWER);
+                //Slight feed forward to keep catapult down while driving
             }
 
             // WRITE EFFECTORS - Send calculated power to wheels
@@ -312,4 +307,3 @@ public class TeleOpControlLinearOpMode extends LinearOpMode {
         }
     }
 }
-
