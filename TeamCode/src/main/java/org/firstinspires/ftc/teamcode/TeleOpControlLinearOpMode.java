@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
@@ -98,8 +99,7 @@ public class TeleOpControlLinearOpMode extends LinearOpMode {
 
     private double CATAPULT_UP_POWER = -1.0;
     private double CATAPULT_DOWN_POWER = 1.0;
-    private double CATAPULT_HOLD_POWER = 0.2;
-
+    private double CATAPULT_OFF_POWER = 0;
     private enum CatapultModes {UP, DOWN, HOLD}
     private CatapultModes pivotMode;
 
@@ -175,26 +175,28 @@ public class TeleOpControlLinearOpMode extends LinearOpMode {
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
             //axial = speed, lateral = turn, yaw = strafe
-            double axial = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-            double lateral = -gamepad1.right_stick_x;
-            double yaw = -gamepad1.left_stick_x;
+              // Note: pushing stick forward gives negative value
+            double lateral = -gamepad1.left_stick_x;
+            double yaw = -gamepad1.right_stick_x;
+            double axial = gamepad1.right_stick_y;
 
-            boolean intakeInButton = gamepad1.left_trigger > 0.2;
-            boolean intakeOutButton = gamepad1.left_bumper;
+            boolean intakeInButton = gamepad2.left_trigger > 0.2;
+            boolean intakeOutButton = gamepad2.left_bumper;
 
             // This conditional reduces ambiguity when multiple buttons are pressed.
             if (intakeInButton && intakeOutButton) {
                 intakeInButton = false;
             }
 
-            boolean footOutButton = gamepad1.a;
-            boolean footUpButton = gamepad1.b;
+            boolean footOutButton = gamepad2.a;
+            boolean footUpButton = gamepad2.b;
             if (footOutButton && footUpButton) {
                 footOutButton = false;
             }
 
-            boolean catapultUpButton = gamepad1.right_bumper;
-            boolean catapultDownButton = gamepad1.right_trigger > 0.2;
+
+            boolean catapultUpButton = gamepad2.right_bumper; // brings catapult up
+            boolean catapultDownButton = gamepad2.right_trigger > 0.2; //brings catapult down
             if (catapultUpButton && catapultDownButton) {
                 catapultUpButton = false;
             }
@@ -204,8 +206,8 @@ public class TeleOpControlLinearOpMode extends LinearOpMode {
             // Set up a variable for each drive wheel to save the power level for telemetry.
             leftFrontPower = axial + lateral + yaw;
             rightFrontPower = axial - lateral - yaw;
-            leftBackPower = axial - lateral + yaw;
-            rightBackPower = axial + lateral - yaw;
+            leftBackPower = -axial - lateral + yaw;
+            rightBackPower = -axial + lateral - yaw;
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
@@ -229,10 +231,14 @@ public class TeleOpControlLinearOpMode extends LinearOpMode {
             //      the setDirection() calls above.
             // Once the correct motors move in the correct direction re-comment this code.
 
-/*            leftFrontPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
-            leftBackPower   = gamepad1.a ? 1.0 : 0.0;  // A gamepad
-            rightFrontPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
-            rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad */
+          // leftFrontPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
+            //leftBackPower   = gamepad1.a ? 1.0 : 0.0;  // A gamepad
+            //rightFrontPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
+            //rightBackPower  = gamepad1.b ? 31.0 : 0.0;  // B gamepad
+
+          //  catapult1.setPower(CATAPULT_OFF_POWER);
+           // catapult2.setPower(CATAPULT_OFF_POWER);
+
 
             // INTAKE CODE
             if (intakeInButton) {
@@ -242,6 +248,7 @@ public class TeleOpControlLinearOpMode extends LinearOpMode {
             } else {
                 intakePower = INTAKE_OFF_POWER;
             }
+
 
             // FOOT CODE
             if (footOutButton) {
@@ -266,8 +273,8 @@ public class TeleOpControlLinearOpMode extends LinearOpMode {
                 catapult2.setPower(CATAPULT_DOWN_POWER);
             } else {
                 pivotMode = CatapultModes.HOLD;
-                catapult1.setPower(CATAPULT_HOLD_POWER);
-                catapult2.setPower(CATAPULT_HOLD_POWER);
+                catapult1.setPower(CATAPULT_OFF_POWER);
+                catapult2.setPower(CATAPULT_OFF_POWER);
                 //Slight feed forward to keep catapult down while driving
             }
 
@@ -295,7 +302,7 @@ public class TeleOpControlLinearOpMode extends LinearOpMode {
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.addData("Intake", "%%4.2f", intake.getPower());
-            telemetry.addData("Foot Power", "%4.2f", foot.getPower());
+           // telemetry.addData("Foot Power", "%4.2f", foot.getPower());
             telemetry.addData("Foot MODE", "%s", footmode);
             telemetry.addData("Catapult1 Current/Target/power", "%d, %d, %4.2f",
                     catapult1.getCurrentPosition(), catapult1.getTargetPosition(), catapult1.getPower());
